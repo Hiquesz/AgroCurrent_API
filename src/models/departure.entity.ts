@@ -2,6 +2,7 @@ import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne
 import Machine from "./machine.entity"
 import User from "./user.entity"
 import Arrival from "./arrival.entity"
+import Images_Departure from "./images_dep.entity"
 
 @Entity()
 export default class Departure extends BaseEntity {
@@ -17,16 +18,13 @@ export default class Departure extends BaseEntity {
     @Column()
     date_departure!: Date
 
-    /*@Column()
-    pics!: */
-
     @Column({name: 'user_id'})
     userId!: number
 
     @Column({name: 'machine_id'})
     machineId!: number
 
-    @ManyToOne(() => Machine, machine => machine.departures)
+    @OneToOne(() => Machine, machine => machine.departures)
     machine!: Machine
 
     @ManyToOne(() => User, user => user.departures)
@@ -34,4 +32,7 @@ export default class Departure extends BaseEntity {
 
     @OneToOne(()=> Arrival, arrival => arrival.departure)
     arrival!: Arrival
+
+    @ManyToOne(() => Images_Departure, id => id.departure)
+    images?: Images_Departure[]
 }
