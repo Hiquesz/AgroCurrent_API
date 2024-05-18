@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import Report from './report.entity'
+import Arrival from "./arrival.entity";
 
 @Entity()
 export default class Sensor extends BaseEntity {
@@ -15,6 +15,9 @@ export default class Sensor extends BaseEntity {
     @Column()
     localization!: string
 
-    @ManyToOne(() => Report, report => report.sensors)
-    report!: Report
+    @Column()
+    arrivalId!: number
+    
+    @ManyToOne(()=> Arrival, arrival => arrival.sensors)
+    arrival!: Arrival
 }
