@@ -7,8 +7,8 @@ Integrantes do Grupo:
 - Abner Fernandes;
 - Guilherme Moreno;
 - Henrique Moller;
-- Murilo gruthner;
-- Sara Cristina
+- Murilo Gruthner;
+- Sara Barboza
 
 Professor: Felipe do Espírito Santo;
 
