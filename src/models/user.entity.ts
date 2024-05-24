@@ -1,9 +1,10 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm"
+import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, OneToMany, Unique } from "typeorm"
 import Token from "./token.entity"
 import Departure from "./departure.entity"
 import Arrival from "./arrival.entity"
 
 @Entity()
+@Unique(["email"])
 export default class User extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number
