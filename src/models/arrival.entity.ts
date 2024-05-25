@@ -16,12 +16,6 @@ export default class Arrival extends BaseEntity {
     @Column()
     date_arrival?: Date
 
-    @Column({name: 'departure_id'})
-    departureId!: number
-
-    @Column({name: 'user_id'})
-    userId?: number
-
     @ManyToOne(() => User, user => user.arrivals)
     user?: User
 

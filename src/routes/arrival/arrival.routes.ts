@@ -6,6 +6,7 @@ const arrivalRoutes = Router()
 
 //arrivalRoutes.post('/:id', authMiddleware, ArrivalController.store)
 arrivalRoutes.get('/:departureId', authMiddleware, ArrivalController.index)
+arrivalRoutes.get('/', authMiddleware, ArrivalController.show)
 arrivalRoutes.delete('/:id', authMiddleware, ArrivalController.delete)
 arrivalRoutes.put('/:id', authMiddleware, ArrivalController.update)
 

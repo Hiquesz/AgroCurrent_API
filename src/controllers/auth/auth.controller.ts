@@ -6,7 +6,6 @@ import Token from '../../models/token.entity'
 export default class AuthController{
     static async store (req: Request, res: Response){
         const { name,email,password,category } = req.body
-        const { userId } = req.headers
 
         if(!name) return res.status(400).json({error: "Nome obrigatório!"})
         if(!email || !password) return res.status(400).json({error: "Email e senha obrigatórios!"})
@@ -14,15 +13,7 @@ export default class AuthController{
 
         // verificacao se o email ja esta cadastrado
         const userCheck = await User.findOneBy({ email })
-        if (userCheck) return res.status(400).json({ error: 'Email já cadastrado' })
-
-        if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
-
-        //validacao de categoria de usuario para permissao de acesso
-        const adm = await User.findOneBy({id: Number(userId)})
-        if (adm?.category == "Consultor" || adm?.category == "Registrador"){
-         return res.status(403).json({erro: 'Você não possui permissão de acesso'})
-    }             
+        if (userCheck) return res.status(400).json({ error: 'Email já cadastrado' })             
 
         const user = new User()
         user.name = name
@@ -76,7 +67,7 @@ export default class AuthController{
     }
 
     static async refresh (req: Request, res: Response) {
-        const { authorization } = req.headers
+        const { authorization } = req.cookies
     
         if (!authorization) return res.status(400).json({ error: 'O refresh token é obrigatório' })
     
@@ -104,11 +95,11 @@ export default class AuthController{
     }
 
     static async logout (req: Request, res: Response) {
-        const { authorization } = req.headers
+        const { token } = req.cookies
         
-        if (!authorization) return res.status(400).json({ error: 'O token é obrigatório' })
+        if (!token) return res.status(400).json({ error: 'O token é obrigatório' })
     
-        const userToken = await Token.findOneBy({ token: authorization })
+        const userToken = await Token.findOneBy({ token: token })
         if (!userToken) return res.status(401).json({ error: 'Token inválido' })
     
         await userToken.remove()

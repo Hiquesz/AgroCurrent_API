@@ -18,13 +18,7 @@ export default class Departure extends BaseEntity {
     @Column()
     date_departure!: Date
 
-    @Column({name: 'user_id'})
-    userId!: number
-
-    @Column({name: 'machine_id'})
-    machineId!: number
-
-    @OneToOne(() => Machine, machine => machine.departures)
+    @ManyToOne(() => Machine, machine => machine.departures)
     machine!: Machine
 
     @ManyToOne(() => User, user => user.departures)

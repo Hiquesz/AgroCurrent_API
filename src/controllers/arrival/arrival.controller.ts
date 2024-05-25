@@ -40,25 +40,38 @@ export default class ArrivalController {
     }
     */
 
+    //mostrar chegada a partir do id de uma saida
     static async index (req: Request, res: Response){
-      const { departureId } = req.params 
-      const { userId } = req.headers
+      const { departureId } = req.body 
+      const { userId } = req.cookies
 
       if (!departureId || isNaN(Number(departureId))) 
         return res.status(400).json({erro: 'O id da saída é obrigatório'})
 
       if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-      const arrival = await Arrival.findOneBy({departureId: Number(departureId)})
+      const arrival = await Arrival.find({where: {departure: departureId}})
       if (!arrival) 
         return res.status(404)
 
       return res.json(arrival)    
   }
 
+  static async show (req: Request, res: Response){
+    const { userId } = req.cookies
+
+    if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
+
+    const arrival = await Arrival.find({relations: ['departure']})
+    if (!arrival) 
+      return res.status(404)
+
+    return res.json(arrival)    
+}
+
     static async delete (req: Request, res: Response) {
         const { id } = req.params
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id da chegada é obrigatório' })
@@ -84,7 +97,7 @@ export default class ArrivalController {
       static async update (req: Request, res: Response) {
         const { id } = req.params
         const { date_inspection, date_arrival } = req.body
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id é obrigatório' })

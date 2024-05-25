@@ -5,7 +5,7 @@ import User from '../../models/user.entity'
 export default class MachineController {
     static async store(req: Request, res: Response){
         const { name, type } = req.body
-        const { userId } = req.headers
+        const { userId } = req.cookies
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
         
@@ -28,20 +28,19 @@ export default class MachineController {
         return res.status(201).json(machine)
     }
 
-    /*static async index(req: Request, res: Response){
-      const { userId } = req.headers
-      const { id } = req.params
+    static async index(req: Request, res: Response){
+      const { userId } = req.cookies
 
       if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-      const machine = await Machine.find({where: { id: Number(id) }})
+      const machine = await Machine.find()
 
       return res.status(200).json(machine)
-  }*/
+  }
 
     static async show (req: Request, res: Response){
         const { id } = req.params 
-        const { userId } = req.headers
+        const { userId } = req.cookies
 
         if (!id || isNaN(Number(id))) 
 	        return res.status(400).json({erro: 'O id da máquina é obrigatório'})
@@ -58,7 +57,7 @@ export default class MachineController {
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id da máquina é obrigatório' })
@@ -84,7 +83,7 @@ export default class MachineController {
       static async update (req: Request, res: Response) {
         const { id } = req.params
         const { name, type } = req.body
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id da máquina é obrigatório' })

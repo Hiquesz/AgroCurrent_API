@@ -7,13 +7,13 @@ import Machine from '../../models/machine.entity'
 
 export default class DepartureController {
     static async store(req: Request, res: Response){
-        const { machineId } = req.params
-        const { address, client, date_departure } = req.body
-        const { userId } = req.headers
+        //const { machineId } = req.params
+        const { address, client, date_departure, machineId } = req.body
+        const { userId } = req.cookies
+        const user_id = JSON.parse(JSON.stringify(userId))
 
         //verificacao de autenticacao do usuário
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
-
 
         //conferir se a maquina existe ou se o id fornecido esta correto
         if (!machineId || isNaN(Number(machineId))) return res.status(400).json({error: 'Defina o id de máquina válido'})
@@ -34,30 +34,28 @@ export default class DepartureController {
         departure.address = address
         departure.client = client
         departure.date_departure = date_departure
-        departure.userId = Number(userId)
-        departure.machineId = Number(machineId)
+        departure.user = user_id
+        departure.machine = machineId
 
         await departure.save()
 
         const arrival = new Arrival()
-        arrival.departureId = departure.id
+        arrival.departure = departure
 
         return res.status(201).json(departure)
     }
 
     static async index(req: Request, res: Response){
-        const { userId } = req.headers
-        const { machineId } = req.params
+        const { userId } = req.cookies
+        const { id } = req.params
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
         //conferir se a maquina existe ou se o id fornecido esta correto
-        if (!machineId || isNaN(Number(machineId))) return res.status(400).json({error: 'Defina o id de máquina válido'})
-        const machine = await Machine.find({where: {id: Number(machineId)}})
-        if (!machine) return res.status(400).json({error: 'Defina o id de uma máquina existente'})
+        if (!id || isNaN(Number(id))) return res.status(400).json({error: 'Defina o id de máquina válido'})
 
-        const departure = await Departure.find({where: { machineId: Number(machineId) }})
-
+        //const departure = await Departure.find({where: { machineId: Number(machineId) }})
+        const departure = await Departure.find({relations: ["machine"]})
         return res.status(200).json(departure)
     }
 
@@ -75,7 +73,7 @@ export default class DepartureController {
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id da saída é obrigatório' })
@@ -95,7 +93,7 @@ export default class DepartureController {
         }
 
         //a saida só pode ser alterada/excluida caso n tenha chego ainda
-        const arrival = await Arrival.findOneBy({departureId: Number(id)})
+        const arrival = await Arrival.find({relations: ['departure']})
         if (arrival) {
           return res.status(404).json({ error: 'Esta saída possui chegada e não pode ser excluída ou alterada' })
         }
@@ -107,7 +105,7 @@ export default class DepartureController {
       static async update (req: Request, res: Response) {
         const { id } = req.params
         const { address, client, date_departure } = req.body
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id é obrigatório' })
@@ -127,7 +125,7 @@ export default class DepartureController {
         }
 
         //a saida só pode ser alterada/excluida caso n tenha chego ainda
-        const arrival = await Arrival.findOneBy({departureId: Number(id)})
+        const arrival = await Arrival.find({relations: ['departure']})
         if (arrival) {
           return res.status(404).json({ error: 'Esta saída possui chegada e não pode ser excluída ou alterada' })
         }
