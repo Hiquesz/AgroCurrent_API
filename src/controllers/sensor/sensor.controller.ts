@@ -5,7 +5,7 @@ import User from '../../models/user.entity'
 export default class SensorController {
     static async store(req: Request, res: Response){
         const { time, part_machine, localization, arrivalId } = req.body
-        const { userId } = req.headers
+        const { userId } = req.cookies
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
         
@@ -23,7 +23,7 @@ export default class SensorController {
         sensor.time = time
         sensor.part_machine = part_machine
         sensor.localization = localization
-        sensor.arrivalId = arrivalId
+        sensor.arrival = arrivalId
 
         await sensor.save()
 
@@ -43,7 +43,7 @@ export default class SensorController {
 
     static async show (req: Request, res: Response){
         const { id } = req.params 
-        const { userId } = req.headers
+        const { userId } = req.cookies
 
         if (!id || isNaN(Number(id))) 
 	        return res.status(400).json({erro: 'O id do alarme do sensor é obrigatório'})
@@ -60,7 +60,7 @@ export default class SensorController {
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id do alarme do sensor é obrigatório' })
@@ -86,7 +86,7 @@ export default class SensorController {
       static async update (req: Request, res: Response) {
         const { id } = req.params
         const { time, part_machine, localization } = req.body
-        const { userId } = req.headers
+        const { userId } = req.cookies
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id do alarme do sensor é obrigatório' })

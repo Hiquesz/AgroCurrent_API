@@ -1,5 +1,4 @@
 import Arrival from '../../models/arrival.entity'
-import Document from '../../models/machine.entity'
 import Report from '../../models/report.entity'
 import { Request, Response } from 'express'
 import User from '../../models/user.entity'
@@ -15,21 +14,22 @@ export default class ReportController {
 
         //validacao de categoria de usuario para permissao de acesso
         const user = await User.findOneBy({id: Number(userId)})
-        if (user?.category == "Consultor" || user?.category == "Registrador"){
+        if (user?.category == "Consultor" || user?.category == "Registrador" || !user){
           return res.status(403).json({erro: 'Você não possui permissão de acesso'})
         }
-          
-        const arrival = await Arrival.findOneBy({departureId: Number(arrivalId)})
-        if (!arrivalId || !arrival){
-            return res.status(400).json({erro: 'O relatório deve possuir uma saída e uam chegada!'})
-        }
+        if (!arrivalId) return res.status(400).json({erro: 'O id da chegada é obrigatório'})
+        
+        //validacao da chegada
+        const arrival = await Arrival.findOneBy({id: Number(arrivalId)})
+        if (!arrival) return res.status(400).json({error: 'A chegada escolhida não existe'})
 
         const report = new Report()
-        report.arrivalId = Number(arrivalId)
+        report.arrival = arrival
+        report.user = user
 
         await report.save()
-
         return res.status(201).json(report)
+
     }
 
     /*static async index(req: Request, res: Response){
@@ -47,20 +47,18 @@ export default class ReportController {
         const { id } = req.params 
         const { userId } = req.headers
 
+        if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
+
         if (!id || isNaN(Number(id))) 
 	        return res.status(400).json({erro: 'O id do relatório é obrigatório'})
-
-        if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
-        
-        const report = await Report.findOneBy({id: Number(id)})
-        
+        const report = await Report.find({select: ["arrival"], where: {id: Number(id)}})
         if (!report) return res.status(404)
+      
+      const arrival = await Arrival.find({where: {id: Number(report)}})
+      const departure = await Departure.find({where: {id: Number(arrival)}})
+      const sensors = await Sensor.find({relations: ['arrival']})
 
-        const arrival = await Arrival.findOneBy({id: Number(report.arrivalId)})
-        const departure = await Departure.findOneBy({id: Number(arrival?.departureId)})
-        const alarms = await Sensor.find({where: {arrivalId: Number(arrival?.id)}})
-
-        return res.json({arrival, departure, alarms})    
+        return res.json({report, departure, sensors})    
     }
 
     static async delete (req: Request, res: Response) {

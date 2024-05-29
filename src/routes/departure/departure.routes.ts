@@ -4,8 +4,8 @@ import authMiddleware from '../../middlewares/auth.middleware'
 
 const departureRoutes = Router()
 
-departureRoutes.post('/:machineId', authMiddleware, DepartureController.store)
-departureRoutes.get('/:machineId', authMiddleware, DepartureController.index)
+departureRoutes.post('/', authMiddleware, DepartureController.store)
+departureRoutes.get('/:id', authMiddleware, DepartureController.index)
 //departureRoutes.get('/:id', authMiddleware, DepartureController.show)
 departureRoutes.delete('/:id', authMiddleware, DepartureController.delete)
 departureRoutes.put('/:id', authMiddleware, DepartureController.update)

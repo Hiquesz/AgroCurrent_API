@@ -11,7 +11,7 @@ export default class MachineController {
         
         //validacao de categoria de usuario para permissao de acesso
         const user = await User.findOneBy({id: Number(userId)})
-        if (user?.category == "Consultor"){
+        if (user?.category == "Consultor" || !user){
           return res.status(403).json({erro: 'Você não possui permissão de acesso'})
         }
 
@@ -28,16 +28,15 @@ export default class MachineController {
         return res.status(201).json(machine)
     }
 
-    /*static async index(req: Request, res: Response){
+    static async index(req: Request, res: Response){
       const { userId } = req.headers
-      const { id } = req.params
 
       if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-      const machine = await Machine.find({where: { id: Number(id) }})
+      const machine = await Machine.find()
 
       return res.status(200).json(machine)
-  }*/
+  }
 
     static async show (req: Request, res: Response){
         const { id } = req.params 

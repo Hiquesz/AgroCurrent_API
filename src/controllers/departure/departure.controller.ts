@@ -7,22 +7,21 @@ import Machine from '../../models/machine.entity'
 
 export default class DepartureController {
     static async store(req: Request, res: Response){
-        const { machineId } = req.params
-        const { address, client, date_departure } = req.body
+        //const { machineId } = req.params
+        const { address, client, date_departure, machineId } = req.body
         const { userId } = req.headers
 
         //verificacao de autenticacao do usuário
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-
         //conferir se a maquina existe ou se o id fornecido esta correto
         if (!machineId || isNaN(Number(machineId))) return res.status(400).json({error: 'Defina o id de máquina válido'})
-        const machine = await Machine.find({where: {id: Number(machineId)}})
+        const machine = await Machine.findOneBy({id: Number(machineId)})
         if (!machine) return res.status(400).json({error: 'Defina o id de uma máquina existente'})
 
         //validacao de categoria de usuario para permissao de acesso
         const user = await User.findOneBy({id: Number(userId)})
-        if (user?.category == "Consultor"){
+        if (user?.category == "Consultor" || !user){
           return res.status(403).json({erro: 'Você não possui permissão de acesso'})
         }          
 
@@ -34,30 +33,35 @@ export default class DepartureController {
         departure.address = address
         departure.client = client
         departure.date_departure = date_departure
-        departure.userId = Number(userId)
-        departure.machineId = Number(machineId)
+        departure.user = user
+        departure.machine = machine
 
         await departure.save()
 
         const arrival = new Arrival()
-        arrival.departureId = departure.id
-
+        arrival.departure = departure
+        arrival.user = user
+        await arrival.save()
+        
+        console.log(arrival)
         return res.status(201).json(departure)
+ 
     }
 
     static async index(req: Request, res: Response){
         const { userId } = req.headers
-        const { machineId } = req.params
+        const { id } = req.params
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
         //conferir se a maquina existe ou se o id fornecido esta correto
-        if (!machineId || isNaN(Number(machineId))) return res.status(400).json({error: 'Defina o id de máquina válido'})
-        const machine = await Machine.find({where: {id: Number(machineId)}})
-        if (!machine) return res.status(400).json({error: 'Defina o id de uma máquina existente'})
+        if (!id || isNaN(Number(id))) return res.status(400).json({error: 'Defina o id de saída válido'})
+        
+        const dep = await Departure.findOneBy({id: Number(id)})
+        if (!dep) return res.status(400).json({error: 'Sáida escolhida não existe'})
 
-        const departure = await Departure.find({where: { machineId: Number(machineId) }})
-
+        //const departure = await Departure.find({where: { machineId: Number(machineId) }})
+        const departure = await Departure.find({relations: ["machine"]})
         return res.status(200).json(departure)
     }
 
@@ -95,11 +99,10 @@ export default class DepartureController {
         }
 
         //a saida só pode ser alterada/excluida caso n tenha chego ainda
-        const arrival = await Arrival.findOneBy({departureId: Number(id)})
-        if (arrival) {
+        const arrival = await Arrival.findOneBy({id: Number(id)})
+        if (arrival?.date_inspection) { //data so é lancada quando arrival realmente existe
           return res.status(404).json({ error: 'Esta saída possui chegada e não pode ser excluída ou alterada' })
         }
-
         await departure.remove()
         return res.status(204).json()
       }
@@ -127,8 +130,8 @@ export default class DepartureController {
         }
 
         //a saida só pode ser alterada/excluida caso n tenha chego ainda
-        const arrival = await Arrival.findOneBy({departureId: Number(id)})
-        if (arrival) {
+        const arrival = await Arrival.findOneBy({id: Number(id)})
+        if (arrival?.date_inspection) { //data so é lancada quando arrival realmente existe
           return res.status(404).json({ error: 'Esta saída possui chegada e não pode ser excluída ou alterada' })
         }
 

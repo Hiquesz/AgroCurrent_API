@@ -8,9 +8,6 @@ export default class Images_Departure extends BaseEntity {
 
     @Column()
     address_image?: string
-    
-    @Column({name: 'departure_id'})
-    departureId?: number
 
     @ManyToOne(() => Departure, departure => departure.images)
     departure?: Departure

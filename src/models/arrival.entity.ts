@@ -10,26 +10,20 @@ export default class Arrival extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number
 
-    @Column()
+    @Column({nullable: true})
     date_inspection?: Date
     
-    @Column()
+    @Column({nullable: true})
     date_arrival?: Date
-
-    @Column({name: 'departure_id'})
-    departureId!: number
-
-    @Column({name: 'user_id'})
-    userId?: number
 
     @ManyToOne(() => User, user => user.arrivals)
     user?: User
 
     @OneToOne(()=> Report, report => report.arrival)
-    report!: Report
+    report?: Report
 
     @OneToOne(() => Departure, departure => departure.arrival)
-    departure!: Departure
+    departure?: Departure
 
     @OneToMany(() => Sensor, sensor => sensor.arrival)
     sensors?: Sensor[]

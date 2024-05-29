@@ -14,9 +14,6 @@ export default class Sensor extends BaseEntity {
 
     @Column()
     localization!: string
-
-    @Column()
-    arrivalId!: number
     
     @ManyToOne(()=> Arrival, arrival => arrival.sensors)
     arrival!: Arrival

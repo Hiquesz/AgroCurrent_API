@@ -1,4 +1,4 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, OneToMany } from "typeorm"
+import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm"
 import Departure from "./departure.entity"
 
 @Entity()
@@ -12,6 +12,6 @@ export default class Machine extends BaseEntity {
     @Column({default: false})
     type!: string
 
-    @OneToOne(() => Departure, departure => departure.machine)
+    @OneToMany(() => Departure, departure => departure.machine)
     departures!: Departure[]
 }

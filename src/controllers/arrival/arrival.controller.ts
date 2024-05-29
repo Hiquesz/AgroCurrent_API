@@ -40,21 +40,34 @@ export default class ArrivalController {
     }
     */
 
+    //mostrar chegada a partir do id de uma saida
     static async index (req: Request, res: Response){
-      const { departureId } = req.params 
+      const { departureId } = req.body 
       const { userId } = req.headers
 
       if (!departureId || isNaN(Number(departureId))) 
-        return res.status(400).json({erro: 'O id da saída é obrigatório'})
+        return res.status(400).json({erro: 'O id da saída deve ser válido'})
 
       if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-      const arrival = await Arrival.findOneBy({departureId: Number(departureId)})
+      const arrival = await Arrival.find({where: {departure: departureId}})
       if (!arrival) 
         return res.status(404)
 
       return res.json(arrival)    
   }
+
+  static async show (req: Request, res: Response){
+    const { userId } = req.headers
+
+    if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
+
+    const arrival = await Arrival.find({relations: ['departure']})
+    if (!arrival) 
+      return res.status(404)
+
+    return res.json(arrival)    
+}
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
@@ -94,14 +107,14 @@ export default class ArrivalController {
 
         //validacao de categoria de usuario para permissao de acesso
         const user = await User.findOneBy({id: Number(userId)})
-        if (user?.category == "Consultor"){
+        if (user?.category == "Consultor" || !user){
           return res.status(403).json({erro: 'Você não possui permissão de acesso'})
         }          
     
-        //validacao do vinculo entre saida e chegada
-        const arrival = await Arrival.findOneBy({id: Number(id)})
+        //validacao do vinculo entre saida e chegada e/ou existencia de uma chegada 
+        const arrival = await Arrival.findOneBy({id: Number(id)}) //isto pq na criacao da saida é gerado o msm id para a chegada
         if (!arrival) {
-          return res.status(401).json({ error: 'Saída não encontrada' })
+          return res.status(401).json({ error: 'Chegada não existe ou não possui saída' })
         }
     
         arrival.date_arrival = date_arrival ?? arrival.date_arrival
