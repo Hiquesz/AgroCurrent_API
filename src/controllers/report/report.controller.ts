@@ -1,5 +1,4 @@
 import Arrival from '../../models/arrival.entity'
-import Document from '../../models/machine.entity'
 import Report from '../../models/report.entity'
 import { Request, Response } from 'express'
 import User from '../../models/user.entity'
@@ -9,27 +8,28 @@ import Sensor from '../../models/sensor.entity'
 export default class ReportController {
     static async store(req: Request, res: Response){
         const { arrivalId } = req.body
-        const { userId } = req.cookies
+        const { userId } = req.headers
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
         //validacao de categoria de usuario para permissao de acesso
         const user = await User.findOneBy({id: Number(userId)})
-        if (user?.category == "Consultor" || user?.category == "Registrador"){
+        if (user?.category == "Consultor" || user?.category == "Registrador" || !user){
           return res.status(403).json({erro: 'Você não possui permissão de acesso'})
         }
-          
-        const arrival = await Arrival.find({relations: ['departure']})
-        if (!arrivalId || !arrival){
-            return res.status(400).json({erro: 'O relatório deve possuir uma saída e uma chegada!'})
-        }
+        if (!arrivalId) return res.status(400).json({erro: 'O id da chegada é obrigatório'})
+        
+        //validacao da chegada
+        const arrival = await Arrival.findOneBy({id: Number(arrivalId)})
+        if (!arrival) return res.status(400).json({error: 'A chegada escolhida não existe'})
 
         const report = new Report()
-        report.arrival = arrivalId
+        report.arrival = arrival
+        report.user = user
 
         await report.save()
-
         return res.status(201).json(report)
+
     }
 
     /*static async index(req: Request, res: Response){
@@ -45,7 +45,7 @@ export default class ReportController {
 
     static async show (req: Request, res: Response){
         const { id } = req.params 
-        const { userId } = req.cookies
+        const { userId } = req.headers
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
@@ -63,7 +63,7 @@ export default class ReportController {
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
-        const { userId } = req.cookies
+        const { userId } = req.headers
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id do relatório é obrigatório' })

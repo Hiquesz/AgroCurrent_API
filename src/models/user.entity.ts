@@ -2,6 +2,7 @@ import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, OneToMany, Unique }
 import Token from "./token.entity"
 import Departure from "./departure.entity"
 import Arrival from "./arrival.entity"
+import Report from "./report.entity"
 
 @Entity()
 @Unique(["email"])
@@ -29,4 +30,7 @@ export default class User extends BaseEntity {
 
     @OneToMany(()=> Arrival, arrival => arrival.user)
     arrivals?: Arrival[]
+
+    @OneToMany(()=> Report, report => report.user)
+    reports?: Report[]
 }

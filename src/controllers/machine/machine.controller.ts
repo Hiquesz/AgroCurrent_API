@@ -5,13 +5,13 @@ import User from '../../models/user.entity'
 export default class MachineController {
     static async store(req: Request, res: Response){
         const { name, type } = req.body
-        const { userId } = req.cookies
+        const { userId } = req.headers
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
         
         //validacao de categoria de usuario para permissao de acesso
         const user = await User.findOneBy({id: Number(userId)})
-        if (user?.category == "Consultor"){
+        if (user?.category == "Consultor" || !user){
           return res.status(403).json({erro: 'Você não possui permissão de acesso'})
         }
 
@@ -29,7 +29,7 @@ export default class MachineController {
     }
 
     static async index(req: Request, res: Response){
-      const { userId } = req.cookies
+      const { userId } = req.headers
 
       if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
@@ -40,7 +40,7 @@ export default class MachineController {
 
     static async show (req: Request, res: Response){
         const { id } = req.params 
-        const { userId } = req.cookies
+        const { userId } = req.headers
 
         if (!id || isNaN(Number(id))) 
 	        return res.status(400).json({erro: 'O id da máquina é obrigatório'})
@@ -57,7 +57,7 @@ export default class MachineController {
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
-        const { userId } = req.cookies
+        const { userId } = req.headers
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id da máquina é obrigatório' })
@@ -83,7 +83,7 @@ export default class MachineController {
       static async update (req: Request, res: Response) {
         const { id } = req.params
         const { name, type } = req.body
-        const { userId } = req.cookies
+        const { userId } = req.headers
     
         if(!id || isNaN(Number(id))) {
           return res.status(400).json({ error: 'O id da máquina é obrigatório' })

@@ -1,4 +1,4 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne } from "typeorm"
+import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, JoinColumn } from "typeorm"
 import Machine from "./machine.entity"
 import User from "./user.entity"
 import Arrival from "./arrival.entity"
@@ -24,7 +24,8 @@ export default class Departure extends BaseEntity {
     @ManyToOne(() => User, user => user.departures)
     user!: User
 
-    @OneToOne(()=> Arrival, arrival => arrival.departure)
+    @OneToOne(()=> Arrival)
+    @JoinColumn()
     arrival!: Arrival
 
     @ManyToOne(() => Images_Departure, id => id.departure)
