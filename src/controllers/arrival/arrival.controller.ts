@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import Arrival from '../../models/arrival.entity'
 import User from '../../models/user.entity'
+import Report from '../../models/report.entity'
 import { Raw } from 'typeorm'
 
 export default class ArrivalController {
@@ -95,12 +96,16 @@ export default class ArrivalController {
         if (!arrival) {
           return res.status(404).json({ error: 'Chegada não encontrada' })
         }
-    
-        arrival.date_arrival = JSON.parse(JSON.stringify(null))
-        arrival.date_inspection = JSON.parse(JSON.stringify(null))
+      
+        const report = await Report.findOne({where: {arrival: arrival}})
+        if(!report) {
+          arrival.date_arrival = JSON.parse(JSON.stringify(null))
+          arrival.date_inspection = JSON.parse(JSON.stringify(null))
 
-        await arrival.save()
-        return res.status(204).json()
+          await arrival.save()
+          return res.status(204).json()
+        }
+        return res.json({msg: 'Este trajeto possui relatorio e nao pode ser editado/excluido'})      
       }
 
       static async update (req: Request, res: Response) {
@@ -125,12 +130,17 @@ export default class ArrivalController {
         if (!arrival) {
           return res.status(401).json({ error: 'Chegada não existe' })
         }
+
+        const report = await Report.findOne({where: {arrival: arrival}})
+        if(!report) {
+          arrival.date_arrival = date_arrival ?? arrival.date_arrival
+          arrival.date_inspection = date_inspection ?? arrival.date_inspection
+          arrival.user = user
+          await arrival.save()
     
-        arrival.date_arrival = date_arrival ?? arrival.date_arrival
-        arrival.date_inspection = date_inspection ?? arrival.date_inspection
-        arrival.user = user
-        await arrival.save()
-    
-        return res.json(arrival)
+          return res.json(arrival)
+        }
+        return res.json({msg: 'Este trajeto possui relatorio e nao pode ser editado/excluido'})      
+
       }
 }
