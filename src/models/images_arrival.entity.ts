@@ -11,5 +11,4 @@ export default class Images_Arrival extends BaseEntity {
 
     @ManyToOne(() => Arrival, arrival => arrival.images)
     arrival?: Arrival
-
 }
