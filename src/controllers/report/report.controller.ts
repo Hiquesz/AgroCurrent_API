@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import User from '../../models/user.entity'
 import Departure from '../../models/departure.entity'
 import Sensor from '../../models/sensor.entity'
+import { Raw } from 'typeorm'
 
 export default class ReportController {
     static async store(req: Request, res: Response){
@@ -20,45 +21,60 @@ export default class ReportController {
         if (!arrivalId) return res.status(400).json({erro: 'O id da chegada é obrigatório'})
         
         //validacao da chegada
-        const arrival = await Arrival.findOneBy({id: Number(arrivalId)})
-        if (!arrival) return res.status(400).json({error: 'A chegada escolhida não existe'})
+        const arrival = await Arrival.findOne({where: {
+          id: Number(arrivalId), 
+          date_arrival: Raw(date_arrival => `${date_arrival} IS NOT NULL`)
+        }})
 
+        if (!arrival) return res.status(400).json({error: 'A chegada escolhida não existe'})
+        
         const report = new Report()
         report.arrival = arrival
         report.user = user
-
-        await report.save()
-        return res.status(201).json(report)
-
+        
+          try { await report.save()
+          } catch (e: any) {
+            if (e.code === 'SQLITE_CONSTRAINT') {
+              return res.status(400).json({ error: 'Esta chegada já possui relatório' });
+            }
+            return res.status(400).json({ error: e.message });
+          }
+          return res.status(201).json(report)
     }
 
-    /*static async index(req: Request, res: Response){
-        const { userId } = req.headers
-        const { id } = req.params
+    static async index(req: Request, res: Response){
+      const { id } = req.params 
+      const { userId } = req.headers
 
-        if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
+      if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-        const report = await Report.find({where: { id: Number(id) }})
+      if (!id || isNaN(Number(id))) 
+        return res.status(400).json({erro: 'O id do relatório é obrigatório'})
 
-        return res.status(200).json(report)
-    }*/
+      const report = await Report.findOne({where: {id: Number(id)}, relations: ['arrival', 'user']})
+      if (!report) return res.status(404)
+
+      const arrival = await Arrival.findOne({
+        where: {id: Number(report.arrival.id)},
+        relations: ['departure', 'sensors']
+      }) 
+      if (!arrival) return res.status(404).json({error: 'Chegada não encontrada'})
+
+      return res.json({id: Number(id), arrival})
+    }
 
     static async show (req: Request, res: Response){
-        const { id } = req.params 
         const { userId } = req.headers
 
         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-        if (!id || isNaN(Number(id))) 
-	        return res.status(400).json({erro: 'O id do relatório é obrigatório'})
-        const report = await Report.find({select: ["arrival"], where: {id: Number(id)}})
+        const report = await Report.find({relations: ['arrival', 'user']})
         if (!report) return res.status(404)
       
-      const arrival = await Arrival.find({where: {id: Number(report)}})
-      const departure = await Departure.find({where: {id: Number(arrival)}})
-      const sensors = await Sensor.find({relations: ['arrival']})
-
-        return res.json({report, departure, sensors})    
+     // const arrival = await Arrival.find({where: {id: Number(report)}})
+      //const departure = await Departure.find({where: {id: Number(arrival)}})
+      
+      return res.json(report)    
     }
 
     static async delete (req: Request, res: Response) {
@@ -85,5 +101,4 @@ export default class ReportController {
         await report.remove()
         return res.status(204).json()
       }
-
 }
