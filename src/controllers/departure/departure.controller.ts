@@ -4,7 +4,6 @@ import Arrival from '../../models/arrival.entity'
 import User from '../../models/user.entity'
 import Machine from '../../models/machine.entity'
 
-
 export default class DepartureController {
     static async store(req: Request, res: Response){
         //const { machineId } = req.params
@@ -39,11 +38,11 @@ export default class DepartureController {
         await departure.save()
 
         const arrival = new Arrival()
+        if (!departure || !user) return res.status(400).json({erro: 'Todas as informações são obrigatórias para gerar chegada!'})
         arrival.departure = departure
         arrival.user = user
         await arrival.save()
-        
-        console.log(arrival)
+
         return res.status(201).json(departure)
  
     }
@@ -60,22 +59,21 @@ export default class DepartureController {
         const dep = await Departure.findOneBy({id: Number(id)})
         if (!dep) return res.status(400).json({error: 'Sáida escolhida não existe'})
 
-        //const departure = await Departure.find({where: { machineId: Number(machineId) }})
-        const departure = await Departure.find({relations: ["machine"]})
+        const departure = await Departure.find({relations: ["machine"], where: {id: Number(dep.id)}})
         return res.status(200).json(departure)
     }
 
-    // static async show (req: Request, res: Response){
-    //     const { userId } = req.headers
+    static async show (req: Request, res: Response){
+        const { userId } = req.headers
 
-    //     if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })       
+         if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })       
 
-    //     const departure = await Departure.find({where: { address: Not("null") }}) 
-    //     if (!departure) 
-	  //       return res.status(404)
+        const departure = await Departure.find({relations: ["machine"]}) 
+         if (!departure) 
+	         return res.status(404)
 
-    //     return res.json(departure)    
-    // }
+         return res.json(departure)    
+     }
 
     static async delete (req: Request, res: Response) {
         const { id } = req.params
@@ -104,6 +102,7 @@ export default class DepartureController {
           return res.status(404).json({ error: 'Esta saída possui chegada e não pode ser excluída ou alterada' })
         }
         await departure.remove()
+        await arrival?.remove()
         return res.status(204).json()
       }
 

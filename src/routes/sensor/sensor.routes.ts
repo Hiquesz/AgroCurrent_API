@@ -8,6 +8,6 @@ sensorRoutes.post('/', authMiddleware, SensorController.store)
 //sensorRoutes.get('/:id', authMiddleware, SensorController.index)
 sensorRoutes.get('/:id', authMiddleware, SensorController.show)
 sensorRoutes.delete('/:id', authMiddleware, SensorController.delete)
-sensorRoutes.put('/:id', authMiddleware, SensorController.update)
+//sensorRoutes.put('/:id', authMiddleware, SensorController.update)
 
 export default sensorRoutes

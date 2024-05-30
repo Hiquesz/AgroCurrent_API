@@ -1,4 +1,4 @@
-import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, OneToMany } from "typeorm"
+import { Entity, BaseEntity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, OneToMany, JoinColumn } from "typeorm"
 import Departure from "./departure.entity"
 import User from "./user.entity"
 import Report from "./report.entity"
@@ -19,8 +19,9 @@ export default class Arrival extends BaseEntity {
     @ManyToOne(() => User, user => user.arrivals)
     user?: User
 
-    @OneToOne(()=> Report, report => report.arrival)
-    report?: Report
+    @OneToOne(()=> Report)
+    @JoinColumn()
+    report!: Report
 
     @OneToOne(() => Departure, departure => departure.arrival)
     departure?: Departure

@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm"
+import { BaseEntity, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm"
 import Arrival from "./arrival.entity"
 import User from "./user.entity"
 
@@ -7,7 +7,8 @@ export default class Report extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number
 
-    @OneToOne(() => Arrival, arrival => arrival.report)
+    @OneToOne(()=> Arrival)
+    @JoinColumn()
     arrival!: Arrival
 
     @ManyToOne(() => User, user => user.reports)

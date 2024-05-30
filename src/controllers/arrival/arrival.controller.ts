@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import Arrival from '../../models/arrival.entity'
 import User from '../../models/user.entity'
+import { Raw } from 'typeorm'
 
 export default class ArrivalController {
     /*static async store(req: Request, res: Response){
@@ -42,15 +43,18 @@ export default class ArrivalController {
 
     //mostrar chegada a partir do id de uma saida
     static async index (req: Request, res: Response){
-      const { departureId } = req.body 
+      const { departureId } = req.params 
       const { userId } = req.headers
 
       if (!departureId || isNaN(Number(departureId))) 
         return res.status(400).json({erro: 'O id da saída deve ser válido'})
 
       if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
-
-      const arrival = await Arrival.find({where: {departure: departureId}})
+      
+      const arrival = await Arrival.find({relations: ["departure"], where: {
+        id: Number(departureId), 
+        date_arrival: Raw(date_arrival => `${date_arrival} IS NOT NULL`)
+      }})
       if (!arrival) 
         return res.status(404)
 
@@ -62,7 +66,9 @@ export default class ArrivalController {
 
     if (!userId) return res.status(401).json({ error: 'Usuário não autenticado' })
 
-    const arrival = await Arrival.find({relations: ['departure']})
+      const arrival = await Arrival.find({relations: ["departure"], where: { 
+        date_arrival: Raw(date_arrival => `${date_arrival} IS NOT NULL`)
+      }})
     if (!arrival) 
       return res.status(404)
 
@@ -90,12 +96,15 @@ export default class ArrivalController {
           return res.status(404).json({ error: 'Chegada não encontrada' })
         }
     
-        await arrival.remove()
+        arrival.date_arrival = JSON.parse(JSON.stringify(null))
+        arrival.date_inspection = JSON.parse(JSON.stringify(null))
+
+        await arrival.save()
         return res.status(204).json()
       }
 
       static async update (req: Request, res: Response) {
-        const { id } = req.params
+        const { id } = req.params //seria o id da saida, uma vez que são iguais
         const { date_inspection, date_arrival } = req.body
         const { userId } = req.headers
     
@@ -114,11 +123,12 @@ export default class ArrivalController {
         //validacao do vinculo entre saida e chegada e/ou existencia de uma chegada 
         const arrival = await Arrival.findOneBy({id: Number(id)}) //isto pq na criacao da saida é gerado o msm id para a chegada
         if (!arrival) {
-          return res.status(401).json({ error: 'Chegada não existe ou não possui saída' })
+          return res.status(401).json({ error: 'Chegada não existe' })
         }
     
         arrival.date_arrival = date_arrival ?? arrival.date_arrival
         arrival.date_inspection = date_inspection ?? arrival.date_inspection
+        arrival.user = user
         await arrival.save()
     
         return res.json(arrival)
