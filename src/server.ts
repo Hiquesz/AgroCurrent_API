@@ -10,7 +10,7 @@ const port = process.env.PORT || 3001
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: ['http://localhost:3001', 'http://localhost:5173'],
+    origin: ['https://agrocurrent-api.onrender.com', 'http://localhost:5173'],
     credentials: true
 }))
 
