@@ -58,6 +58,8 @@ export default class AuthController{
 
         //add o token em um cookie
         res.cookie('token', token.token, {httpOnly: true, secure: true, sameSite: 'none'})
+        res.cookie('category', token.user.category, {httpOnly: false, secure: true, sameSite: 'none'})
+        res.cookie('name', token.user.name, {httpOnly: false, secure: true, sameSite: 'none'})
 
         return res.json({
             token: token.token,
