@@ -69,7 +69,7 @@ export default class AuthController{
     }
 
     static async refresh (req: Request, res: Response) {
-        const { authorization } = req.cookies
+        const { authorization } = req.headers
     
         if (!authorization) return res.status(400).json({ error: 'O refresh token é obrigatório' })
     
